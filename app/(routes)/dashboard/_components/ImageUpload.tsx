@@ -14,6 +14,20 @@ import {
 } from "@/components/ui/select";
 
 export default function ImageUpload() {
+  const AiModelList = [
+    {
+      name: "Gemini Google",
+      icon: "/google.png",
+    },
+    {
+      name: "llama By Meta",
+      icon: "/meta-logo.png",
+    },
+    {
+      name: "DeepSeek",
+      icon: "/deepseek.png",
+    },
+  ];
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const onImageSelect = (event: ChangeEvent<HTMLInputElement>) => {
@@ -83,9 +97,20 @@ export default function ImageUpload() {
                 <SelectValue placeholder="Select AI Model" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="OpenAI">ChatGPT</SelectItem>
-                <SelectItem value="Gemini">Google Gemini</SelectItem>
-                <SelectItem value="Copilot">GitHub Copilot</SelectItem>
+                {AiModelList.map((model, index) => (
+                  <SelectItem value={model.name} key={index}>
+                    <div key={index} className="flex items-center gap-2">
+                      <Image
+                        src={model.icon}
+                        alt={model.icon}
+                        width={25}
+                        height={25}
+                      />
+
+                      <h2>{model.name}</h2>
+                    </div>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
