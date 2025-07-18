@@ -12,6 +12,8 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { auth, storage } from "@/configs/firebaseConfig";
 
 export default function ImageUpload() {
   const AiModelList = [
@@ -31,11 +33,33 @@ export default function ImageUpload() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const onImageSelect = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    const file = event.target.files;
     if (file) {
-      const imageUrl = URL.createObjectURL(file);
+      const imageUrl = URL.createObjectURL(file[0]);
+      setFile(file[0]);
+
       setPreviewUrl(imageUrl);
     }
+  };
+  const [file, setFile] = useState<any>();
+  const [description, setDescription] = useState<string>();
+  const [model, setModel] = useState<string>();
+
+  const onConvertToCodeButtonClick = async () => {
+    if (!file || !model || !description) {
+      console.log("Select all feilds");
+      return;
+    }
+    console.log(auth.currentUser);
+    //save image to Firebase
+    const fileName = Date.now() + ".png";
+    const imageRef = ref(storage, "wireframe-image-code/" + fileName);
+    await uploadBytes(imageRef, file).then((resp) => {
+      console.log("Image uploaded..");
+    });
+
+    const ImageUrl = await getDownloadURL(imageRef);
+    console.log(ImageUrl);
   };
 
   return (
@@ -92,7 +116,7 @@ export default function ImageUpload() {
             <label className="text-sm text-gray-600 dark:text-gray-300 block mb-1">
               Choose AI Model
             </label>
-            <Select>
+            <Select onValueChange={(value) => setModel(value)}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select AI Model" />
               </SelectTrigger>
@@ -120,6 +144,7 @@ export default function ImageUpload() {
               Description of Web Page
             </label>
             <Textarea
+              onChange={(event) => setDescription(event?.target.value)}
               placeholder="Describe what your webpage should look like..."
               className="h-40 resize-none"
             />
@@ -129,7 +154,10 @@ export default function ImageUpload() {
 
       {/* Convert Button */}
       <div className="mt-10 flex justify-center">
-        <Button className="px-6 py-3 text-md gap-2">
+        <Button
+          className="px-6 py-3 text-md gap-2"
+          onClick={onConvertToCodeButtonClick}
+        >
           <WandSparkles className="w-5 h-5" />
           Convert to Code
         </Button>
