@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, ChangeEvent } from "react";
 import Image from "next/image";
 import { ImageUp, WandSparkles, X } from "lucide-react";
@@ -14,7 +13,10 @@ import {
 } from "@/components/ui/select";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { auth, storage } from "@/configs/firebaseConfig";
-
+import axios from "axios";
+//@ts-ignore
+import uuid4 from "uuid4";
+import { useAuthContext } from "@/app/provider";
 export default function ImageUpload() {
   const AiModelList = [
     {
@@ -44,6 +46,7 @@ export default function ImageUpload() {
   const [file, setFile] = useState<any>();
   const [description, setDescription] = useState<string>();
   const [model, setModel] = useState<string>();
+  const { user } = useAuthContext();
 
   const onConvertToCodeButtonClick = async () => {
     if (!file || !model || !description) {
@@ -58,8 +61,20 @@ export default function ImageUpload() {
       console.log("Image uploaded..");
     });
 
-    const ImageUrl = await getDownloadURL(imageRef);
-    console.log(ImageUrl);
+    const url = await getDownloadURL(imageRef);
+    console.log("Image URL:-" + url);
+
+    const uid = uuid4();
+    //save image to url
+    const result = await axios.post("/api/wireframe-to-code", {
+      uid: uid,
+      description: description,
+      imageUrl: url,
+      model: model,
+      email: user?.email,
+    });
+
+    console.log(result.data);
   };
 
   return (
