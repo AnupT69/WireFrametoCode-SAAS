@@ -1,7 +1,7 @@
 "use client";
 import { useState, ChangeEvent } from "react";
 import Image from "next/image";
-import { ImageUp, WandSparkles, X } from "lucide-react";
+import { ImageUp, Loader2Icon, WandSparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -17,21 +17,10 @@ import axios from "axios";
 //@ts-ignore
 import uuid4 from "uuid4";
 import { useAuthContext } from "@/app/provider";
+import { useRouter } from "next/navigation";
+import Constants from "@/data/Constants";
 export default function ImageUpload() {
-  const AiModelList = [
-    {
-      name: "Gemini Google",
-      icon: "/google.png",
-    },
-    {
-      name: "llama By Meta",
-      icon: "/meta-logo.png",
-    },
-    {
-      name: "DeepSeek",
-      icon: "/deepseek.png",
-    },
-  ];
+  
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const onImageSelect = (event: ChangeEvent<HTMLInputElement>) => {
@@ -47,12 +36,16 @@ export default function ImageUpload() {
   const [description, setDescription] = useState<string>();
   const [model, setModel] = useState<string>();
   const { user } = useAuthContext();
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
 
   const onConvertToCodeButtonClick = async () => {
     if (!file || !model || !description) {
       console.log("Select all feilds");
       return;
     }
+    setLoading(true);
     console.log(auth.currentUser);
     //save image to Firebase
     const fileName = Date.now() + ".png";
@@ -75,6 +68,8 @@ export default function ImageUpload() {
     });
 
     console.log(result.data);
+    setLoading(false);
+    router.push('/view-code/'+uid);
   };
 
   return (
@@ -136,7 +131,7 @@ export default function ImageUpload() {
                 <SelectValue placeholder="Select AI Model" />
               </SelectTrigger>
               <SelectContent>
-                {AiModelList.map((model, index) => (
+                {Constants?.AiModelList.map((model, index) => (
                   <SelectItem value={model.name} key={index}>
                     <div key={index} className="flex items-center gap-2">
                       <Image
@@ -172,8 +167,9 @@ export default function ImageUpload() {
         <Button
           className="px-6 py-3 text-md gap-2"
           onClick={onConvertToCodeButtonClick}
-        >
-          <WandSparkles className="w-5 h-5" />
+          disabled={loading}
+        >{loading?<Loader2Icon className="animate-spin"/>:<WandSparkles className="w-5 h-5"/>}
+          {/* <WandSparkles className="w-5 h-5" /> */}
           Convert to Code
         </Button>
       </div>
